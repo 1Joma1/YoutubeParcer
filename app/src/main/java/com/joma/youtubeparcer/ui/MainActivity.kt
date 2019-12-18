@@ -30,7 +30,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initView() {
-        internet_try_again_btn.setOnClickListener { fetchPlaylist() }
+        internet_try_again_btn.setOnClickListener {
+            fetchPlaylist()
+            Toast.makeText(this, "Loading...", Toast.LENGTH_SHORT).show()}
     }
 
     private fun initAdapter() {
