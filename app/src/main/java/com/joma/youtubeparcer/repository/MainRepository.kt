@@ -1,13 +1,10 @@
 package com.joma.youtubeparcer.repository
 
-import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.joma.youtubeparcer.api.IYouTubeApi
 import com.joma.youtubeparcer.api.RetrofitClient
 import com.joma.youtubeparcer.model.Playlist
-import com.joma.youtubeparcer.ui.MainActivity
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response

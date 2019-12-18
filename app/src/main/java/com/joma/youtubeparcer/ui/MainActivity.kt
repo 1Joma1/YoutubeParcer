@@ -2,7 +2,6 @@ package com.joma.youtubeparcer.ui
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.lifecycle.Observer
@@ -31,10 +30,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initView() {
-        internet_try_again_btn.setOnClickListener {
-            fetchPlaylist()
-            Toast.makeText(this, "loading", Toast.LENGTH_SHORT).show()
-        }
+        internet_try_again_btn.setOnClickListener { fetchPlaylist() }
     }
 
     private fun initAdapter() {
