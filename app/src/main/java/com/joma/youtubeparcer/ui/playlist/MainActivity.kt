@@ -1,5 +1,6 @@
-package com.joma.youtubeparcer.ui
+package com.joma.youtubeparcer.ui.playlist
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -11,6 +12,7 @@ import com.joma.youtubeparcer.R
 import com.joma.youtubeparcer.adapter.PlaylistAdapter
 import com.joma.youtubeparcer.model.ItemsItem
 import com.joma.youtubeparcer.model.Playlist
+import com.joma.youtubeparcer.ui.detail_playlist.DetailPlaylistActivity
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -43,7 +45,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun clickItem(item: ItemsItem) {
-
+        val intent = Intent(this, DetailPlaylistActivity::class.java)
+        intent.putExtra("id", item.id)
+        intent.putExtra("title", item.snippet.title)
+        intent.putExtra("channelTitle", item.snippet.channelId)
+        intent.putExtra("etag", item.etag)
+        intent.putExtra("description", item.snippet.description)
+        startActivity(intent)
     }
 
     private fun fetchPlaylist() {
