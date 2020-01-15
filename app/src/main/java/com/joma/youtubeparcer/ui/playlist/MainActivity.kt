@@ -13,7 +13,11 @@ import com.joma.youtubeparcer.adapter.PlaylistAdapter
 import com.joma.youtubeparcer.model.ItemsItem
 import com.joma.youtubeparcer.model.Playlist
 import com.joma.youtubeparcer.ui.detail_playlist.DetailPlaylistActivity
+import com.joma.youtubeparcer.utils.InternetHelper
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -28,13 +32,18 @@ class MainActivity : AppCompatActivity() {
 
         initView()
         initAdapter()
-        fetchPlaylist()
+        getDataFromDatabase()
     }
 
     private fun initView() {
         internet_try_again_btn.setOnClickListener {
-            fetchPlaylist()
-            Toast.makeText(this, "Loading...", Toast.LENGTH_SHORT).show()}
+            if (InternetHelper().checkInternetConnection(this)) {
+                fetchPlaylist()
+                Toast.makeText(this, "Loading...", Toast.LENGTH_SHORT).show()
+            } else{
+                Toast.makeText(this, "No internet", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun initAdapter() {
@@ -55,21 +64,60 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun fetchPlaylist() {
+        if (InternetHelper().checkInternetConnection(this)) {
+            no_internet_view.visibility = View.GONE
+            recycler_view.visibility = View.VISIBLE
+            val data = viewModel?.getPlaylistData()
+            data?.observe(this, Observer<Playlist> {
+                val model: Playlist? = data.value
+                when {
+                    model != null -> {
+                        updateDatabasePlaylist(model)
+                        updateAdapterData(model)
+                    }
+                }
+            })
+        } else {
+            showEmptyState()
+        }
+    }
+
+    private fun showEmptyState() {
+        no_internet_view.visibility = View.VISIBLE
+        recycler_view.visibility = View.GONE
+    }
+
+    private fun updateAdapterData(model: Playlist?) {
+        val data = model?.items
+        adapter?.update(data)
+    }
+
+    private fun updateDatabasePlaylist(model: Playlist?) {
+        model?.let { viewModel?.insertPlaylistData(it) }
+    }
+
+    private fun getDataFromDatabase() {
+        CoroutineScope(Dispatchers.Main).launch {
+            val model = viewModel?.getDataFromDB()
+            if (model != null && !model.items.isNullOrEmpty()) {
+                updateAdapterData(model)
+                fetchNewPlaylistData()
+            } else {
+                fetchPlaylist()
+            }
+        }
+    }
+
+    private fun fetchNewPlaylistData() {
         val data = viewModel?.getPlaylistData()
         data?.observe(this, Observer<Playlist> {
             val model: Playlist? = data.value
-            if (data.value != null) {
-                updateAdapterData(model)
-                no_internet_view.visibility = View.GONE
-            } else {
-                no_internet_view.visibility = View.VISIBLE
-                Toast.makeText(this, "No Internet", Toast.LENGTH_SHORT).show()
+            when {
+                model != null -> {
+                    updateDatabasePlaylist(model)
+                    updateAdapterData(model)
+                }
             }
         })
-    }
-
-    private fun updateAdapterData(list: Playlist?) {
-        val data = list?.items
-        adapter?.update(data)
     }
 }

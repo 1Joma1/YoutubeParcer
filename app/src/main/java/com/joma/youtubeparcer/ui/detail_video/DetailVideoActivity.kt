@@ -27,8 +27,12 @@ import com.joma.youtubeparcer.model.DetailVideo
 import com.joma.youtubeparcer.model.YtVideo
 import com.joma.youtubeparcer.utils.CallBacks
 import com.joma.youtubeparcer.utils.DownloadMaster
+import com.joma.youtubeparcer.utils.InternetHelper
 import com.joma.youtubeparcer.utils.PlayerManager
 import kotlinx.android.synthetic.main.activity_detail_video.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.lang.Exception
 
 class DetailVideoActivity : AppCompatActivity(), CallBacks.playerCallBack {
@@ -66,7 +70,50 @@ class DetailVideoActivity : AppCompatActivity(), CallBacks.playerCallBack {
         initActionBar()
         getExtra()
         setupViews()
-        fetchDetailVideo()
+
+        getDetailVideo()
+    }
+
+    private fun getDetailVideo() {
+        CoroutineScope(Dispatchers.Main).launch {
+            val model = viewModel?.getDetailVideoData()
+            if (model != null) {
+                getExtraDetailVideoData(model)
+            } else {
+                if (InternetHelper().checkInternetConnection(this@DetailVideoActivity)) {
+                    fetchDetailVideo()
+                } else {
+                    Toast.makeText(
+                        this@DetailVideoActivity,
+                        "No internet connection",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    finish()
+                }
+            }
+        }
+    }
+
+    private fun getExtraDetailVideoData(model: List<DetailVideo>?) {
+        for (i in model!!.indices) {
+            for (j in model[i].items!!) {
+                if (j.id == videoId) {
+                    setData(model[i])
+                    return
+                }
+            }
+
+        }
+        if (InternetHelper().checkInternetConnection(this@DetailVideoActivity)) {
+            fetchDetailVideo()
+        } else {
+            Toast.makeText(
+                this@DetailVideoActivity,
+                "No internet connection",
+                Toast.LENGTH_LONG
+            ).show()
+            finish()
+        }
     }
 
     private fun setupViews() {
@@ -179,6 +226,8 @@ class DetailVideoActivity : AppCompatActivity(), CallBacks.playerCallBack {
             when {
                 model != null -> {
                     setData(model)
+                    actualLink(model.items?.get(0)?.id.toString())
+                    viewModel?.insertDetailVideoData(model)
                 }
             }
         })
@@ -188,8 +237,6 @@ class DetailVideoActivity : AppCompatActivity(), CallBacks.playerCallBack {
         tv_title.text = model.items?.get(0)?.snippet?.title
         fileName = model.items?.get(0)?.snippet?.title
         tv_description.text = model.items?.get(0)?.snippet?.description
-        val link = model.items?.get(0)?.id.toString()
-        actualLink(link)
     }
 
     @SuppressLint("StaticFieldLeak")
@@ -217,10 +264,15 @@ class DetailVideoActivity : AppCompatActivity(), CallBacks.playerCallBack {
                     lhs!!.height - rhs!!.height
                 })
                 try {
-                    val yotutubeUrl: YtVideo? = formatsToShowList?.get(formatsToShowList!!.lastIndex - 3)
+                    val yotutubeUrl: YtVideo? =
+                        formatsToShowList?.get(formatsToShowList!!.lastIndex - 3)
                     playVideo(yotutubeUrl?.videoFile?.url!!)
                 } catch (e: Exception) {
-                    Toast.makeText(this@DetailVideoActivity,"Video can't be played", Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        this@DetailVideoActivity,
+                        "Video can't be played",
+                        Toast.LENGTH_LONG
+                    ).show()
                     finish()
                 }
             }
@@ -231,7 +283,7 @@ class DetailVideoActivity : AppCompatActivity(), CallBacks.playerCallBack {
         val height = ytFile.format.height
         if (height != -1) {
             for (frVideo in this.formatsToShowList!!) {
-                if (frVideo?.height == height && (frVideo?.videoFile == null || frVideo.videoFile!!.format.fps == ytFile.format.fps)) {
+                if (frVideo?.height == height && (frVideo.videoFile == null || frVideo.videoFile!!.format.fps == ytFile.format.fps)) {
                     return
                 }
             }

@@ -1,14 +1,21 @@
 package com.joma.youtubeparcer.model
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
 import com.google.gson.annotations.SerializedName
+import com.joma.youtubeparcer.type_converters.ItemsItemTypeConverter
+import com.joma.youtubeparcer.type_converters.PlaylistModelTypeConverter
 
-
+@Entity(tableName = "play_list")
+@TypeConverters(PlaylistModelTypeConverter::class)
 data class Playlist(
     @SerializedName("kind")
     var kind: String,
     @SerializedName("pageInfo")
     var pageInfo: PageInfo,
     @SerializedName("etag")
+    @PrimaryKey
     var etag: String,
     @SerializedName("items")
     var items: List<ItemsItem>
@@ -76,6 +83,8 @@ data class Thumbnails(
     val medium: Medium
 )
 
+@Entity(tableName = "items_item")
+@TypeConverters(ItemsItemTypeConverter::class)
 data class ItemsItem(
     @SerializedName("snippet")
     val snippet: Snippet,
@@ -84,6 +93,7 @@ data class ItemsItem(
     @SerializedName("etag")
     val etag: String,
     @SerializedName("id")
+    @PrimaryKey
     val id: String,
     @SerializedName("contentDetails")
     val contentDetails: ContentDetails
